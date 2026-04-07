@@ -1,0 +1,38 @@
+[
+  {
+    "id": "PACK_MINI",
+    "name": "Mini Relief Pack",
+    "image": "/assets/products_mini_relief_pack.png",
+    "variants": [
+      { "id": "PACK_MINI_ECO", "tier": "Eco", "price": 100, "currency": "ZAR" },
+      { "id": "PACK_MINI_PREMIUM", "tier": "Premium", "price": 546700, "currency": "ZAR" }
+    ]
+  },
+  {
+    "id": "PACK_REGULAR",
+    "name": "Regular Support Pack",
+    "image": "/assets/products_regular_support_pack.png",
+    "variants": [
+      { "id": "PACK_REGULAR_ECO", "tier": "Eco", "price": 812750, "currency": "ZAR" },
+      { "id": "PACK_REGULAR_PREMIUM", "tier": "Premium", "price": 1172800, "currency": "ZAR" }
+    ]
+  },
+  {
+    "id": "PACK_MAX",
+    "name": "Max Relief Pack",
+    "image": "/assets/products_max_relief_pack.png",
+    "variants": [
+      { "id": "PACK_MAX_ECO", "tier": "Eco", "price": 1258800, "currency": "ZAR" },
+      { "id": "PACK_MAX_PREMIUM", "tier": "Premium", "price": 1798800, "currency": "ZAR" }
+    ]
+  },
+  {
+    "id": "FLOWER_ONLY",
+    "name": "Flower Only",
+    "image": "/assets/products/flower.png",
+    "variants": [
+      { "id": "FLOWER_ONLY_ECO", "tier": "Eco", "price": 180000, "currency": "ZAR" },
+      { "id": "FLOWER_ONLY_PREMIUM", "tier": "Premium", "price": 360000, "currency": "ZAR" }
+    ]
+  }
+]

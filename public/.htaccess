@@ -1,0 +1,44 @@
+RewriteEngine On
+RewriteBase /
+
+# Don't rewrite files or directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Explicitly handle the /test path and its subpaths
+RewriteRule ^test(/.*)?$ /index.html [L]
+
+# Handle API requests for test paths by redirecting to regular API
+RewriteRule ^test/api/(.*)$ /api/$1 [L]
+
+# Rewrite everything else to index.html to allow the SPA to route
+RewriteRule ^index\.html$ - [L]
+RewriteRule . /index.html [L]
+
+# Set proper headers for SPA
+<IfModule mod_headers.c>
+    # Enable CORS
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    
+    # Security headers
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Cache settings for static assets
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "max-age=31536000, public"
+    </FilesMatch>
+    
+    <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp)$">
+        Header set Cache-Control "max-age=31536000, public"
+    </FilesMatch>
+    
+    # No cache for HTML files
+    <FilesMatch "\.html$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </FilesMatch>
+</IfModule>

@@ -1,0 +1,50 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+/dist
+/build
+*.zip
+*.local
+dist*.zip 
+dist/
+dist07-10*.zip
+distold*.zip
+
+# Ignore environment variables and data files
+server/data/orders.json
+server/data/pnumbers.json
+.env
+server/.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Large media/doc assets kept locally, not in Git
+public/SW-patient bundles.pdf
+public/onboarding-android-v2.pdf
+public/onboarding-ios-v2.pdf
+src/assets/loading_video.mp4
+src/assets/oil_video.mov
+src/assets/video.mp4
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db

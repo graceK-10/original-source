@@ -1,0 +1,14 @@
+RewriteEngine On
+RewriteBase /
+
+# Don't rewrite files or directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Explicitly handle the /test path
+RewriteRule ^test/(.*)$ /index.html [L]
+
+# Rewrite everything else to index.html to allow the SPA to route
+RewriteRule ^index\.html$ - [L]
+RewriteRule . /index.html [L]

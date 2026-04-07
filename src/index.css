@@ -1,0 +1,288 @@
+/* index.css or tailwind.css */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-outline-tertiary {
+    text-shadow:
+      -1px -1px 0 #08B2B2,
+       2px -1px 0 #028282,
+      -1px  1px 0 #08B2B2,
+       2px  1px 0 #028282;
+  }
+
+  .btn-shadow {
+    box-shadow: 0 4px 12px rgba(2, 130, 130, 0.8);
+  }
+
+  .btn-brand-gradient {
+    @apply bg-gradient-to-tr from-[#028282] via-[#08B2B2] to-[#FDBA21] text-white rounded-full px-6 py-2 text-lg font-semibold transition hover:opacity-90;
+  }
+  
+  .text-shadow {
+    text-shadow: 0 4px 12px #028282cc;
+    -webkit-text-stroke: 2px #028282cc;
+    text-stroke: 1px #028282;
+  }
+
+  .text-gradient-brand {
+    background-image: linear-gradient(
+      to right,
+      #028282 0%,
+      #028282 80%,
+      #FDBA21 80%,
+      #FDBA21 100%
+    );
+    @apply bg-clip-text text-transparent;
+  }
+}
+
+  @font-face {
+  font-family: "GothicCondensed";
+  src: url("/fonts/Gothic821CondensedRegular.otf") format("opentype");
+  /* font-weight: normal;
+  font-style: normal; */
+}
+
+
+body{
+  /* background-image: url('/background-img.jpeg'); */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: 'Gothic821Condensed', sans-serif;
+}
+
+h1 {
+  font-family: 'Baloo', sans-serif;
+}
+
+h2,h3 {
+  font-family: 'Baloo Chettan', sans-serif;
+}
+
+p {
+  font-family: 'Roboto', sans-serif;
+}
+
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink {
+  50% { border-color: transparent }
+}
+
+@keyframes remove-cursor {
+  to { border-right: none; }
+}
+
+.typing-animation {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid #FDBA21;
+  width: 0;
+  animation:
+    typing 4s steps(30, end) forwards,
+    blink 0.95s step-end 1.5s 0, /* blink 3 times after typing */
+    remove-cursor 0.01s forwards 1.5s; /* remove cursor at end */
+}
+
+
+
+.nav-link {
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-link.active {
+  color: #33C4C4;
+  border-bottom: 2px solid #33C4C4;
+}
+
+.hero-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 400px;
+  top: 6rem;
+  background: #08B2B280;
+  /* width: 100%; */
+  }
+
+/* Home Page Menu Section */
+.container{
+  background-color: rgb(255, 255, 255);
+  margin-bottom: 2rem;
+}
+
+.icon-circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px; /* Adjust the size as needed */
+  height: 50px; /* Adjust the size as needed */
+  border-radius: 50%;
+  padding: 10px; 
+  background-color: rgba(117, 116, 116, 0.8);
+  color: rgb(194, 194, 194);
+}
+
+.icon-circle:hover {
+  color: #08B2B2;
+}
+
+/* Home Page About Section */
+.about-section {
+  display: flex;
+  justify-content: center; /* Center the flex items horizontally */
+  align-items: center;
+  /* width: 80%; */
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.image-container,
+.text-container {
+  flex: 1;
+}
+
+.text-container {
+  padding-left: 2rem;
+  /* text-align: center; */
+  margin-left: 10rem;
+}
+
+.about-image {
+  width: 100%; /* Set the image width to fill the container */
+  height: auto;
+}
+
+/* About Us Page */
+.mission-section {
+  display: flex;
+  justify-content: center; /* Center the flex items horizontally */
+  align-items: center;
+  width: 100%;
+}
+
+.text-container2 {
+  flex: 1;
+}
+
+.text-container2 {
+  padding-left: 2rem;
+  /* text-align: center; */
+  margin-right: 8rem;
+}
+
+.text-outline {
+  color: #028282;
+  -webkit-text-stroke: 0.1px #fff;
+  text-stroke: 0.01px #fff;
+}
+
+.text-bottom-outline {
+  color: #028282;
+  text-shadow: 0 2px 0 #fff;
+}
+
+.text-bottom-outline2 {
+  color: #F3EDE2;
+  text-shadow: 2px 2px 2px #028282;
+}
+
+.text-bottom-outline3 {
+  color: #fff;
+  text-shadow: 2px 2px 2px #028282;
+}
+
+.text-bottom-outline4 {
+  color: #F3EDE2;
+  text-shadow:
+    -2px 0 0 #028282,   /* left shadow (teal) */
+     0  2px 0 #fff;  /* bottom shadow (yellow) */
+}
+
+.bg-logo-bottom-right::after,
+.bg-logo-bottom-left::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 1060px;
+  height: 160px;
+  background-image: url("/assets/logo_outline_2.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: -1;
+}
+.bg-logo-bottom-right {
+  position: relative;
+}
+.bg-logo-bottom-right::after {
+  right: 0;
+}
+
+@media (max-width: 768px) {
+  .bg-logo-bottom-right::after {
+    display: none;
+  }
+}
+
+/* global.css or index.css */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 🔹 Fade-up animation for title */
+@keyframes fadeUpTitle {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up-title {
+  animation: fadeUpTitle 1s ease-out both;
+}
+
+/* 🔹 Fade-up animation for button, delayed 3s */
+@keyframes fadeUpButton {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up-button {
+  opacity: 0;
+  animation: fadeUpButton 1s ease-out both;
+  animation-delay: 1s;
+}
+
+/* Adjust small screen button size */
+@media (max-width: 640px) {
+  .fade-up-button span {
+    font-size: 0.8rem;
+  }
+}
