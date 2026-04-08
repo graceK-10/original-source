@@ -107,6 +107,14 @@ useEffect(() => {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/payment-success"
+            element={
+              <PrivateRoute>
+                <PaymentSuccessPage />
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>

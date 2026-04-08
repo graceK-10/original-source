@@ -114,10 +114,13 @@ app.use("/api", (_req, res) => {
 /* =======================
    Error handler
    ======================= */
-app.use((err, _req, res) => {
+app.use((err, req, res, next) => {
+  void next;
   console.error("[Server Error]", err?.stack || err?.message || err);
+
   const status =
     err?.status || (String(err?.message || "").startsWith("CORS") ? 403 : 500);
+
   res.status(status).json({ error: err?.message || "Internal Server Error" });
 });
 

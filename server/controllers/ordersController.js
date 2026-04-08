@@ -11,6 +11,7 @@ import {
   getNextOrderId,
   getOrdersForUser,
 } from '../services/orderStore.js';
+import { generateSecureToken, hashToken } from '../utils/tokens.js';
 
 dotenv.config();
 
@@ -152,6 +153,9 @@ export const createOrder = async (req, res) => {
 
     // Generate order ID
     const orderId = await getNextOrderId();
+    const successToken = generateSecureToken(32);
+    const successTokenIssuedAt = new Date();
+    const successTokenExpiresAt = new Date(successTokenIssuedAt.getTime() + 1000 * 60 * 60);
 
     // 🔐 Build a stable customer stamp from the authenticated user,
     // with contact data as fallback (never lose the pNumber/email on file)
@@ -184,7 +188,15 @@ export const createOrder = async (req, res) => {
       },
       status: "new",
       notes: [],
-      metadata: {},
+      metadata: {
+        successTokenHash: hashToken(successToken),
+        successTokenIssuedAt: successTokenIssuedAt.toISOString(),
+        successTokenExpiresAt: successTokenExpiresAt.toISOString(),
+        successTokenUsedAt: null,
+        successTokenLastSeenAt: null,
+        successPageSeenAt: null,
+        successPageConfirmed: false,
+      },
     };
 
     await createOrderRecord(order);
@@ -196,6 +208,7 @@ export const createOrder = async (req, res) => {
     res.status(201).json({
       success: true,
       orderId,
+      successToken,
       message: "Order created successfully",
     });
   } catch (error) {

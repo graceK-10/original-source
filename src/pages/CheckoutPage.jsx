@@ -160,9 +160,11 @@ const handleSubmit = async (e) => {
       throw new Error(`Create order failed (${createRes.status}): ${backendMessage}`);
     }
 
-    const { orderId } = await createRes.json();
+    const { orderId, successToken } = await createRes.json();
     if (!orderId) throw new Error("Order ID missing from createOrder response");
+    if (!successToken) throw new Error("Success token missing from createOrder response");
     localStorage.setItem("lastOrderId", orderId);
+    localStorage.setItem("lastOrderSuccessToken", successToken);
 
     // 2) Build V1 payment payload (server will sign & return form fields)
     const totalAmount = (subtotal / 100).toFixed(2);
@@ -175,7 +177,8 @@ const handleSubmit = async (e) => {
       b_name: (currentUser?.name?.split(" ")[0]) || "Customer",
       b_surname: (currentUser?.name?.split(" ").slice(1).join(" ")) || "Name",
       b_mobile: formData.contact.phone,
-      m_return_url: `${window.location.origin}/checkout/success?orderId=${encodeURIComponent(orderId)}`,
+      m_return_url: `${window.location.origin}/checkout/success`,
+      m_back2shop_url: `${window.location.origin}/checkout/failed`,
     };
 
     // 3) Ask backend to generate WebPay V1 form fields

@@ -2,26 +2,62 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { apiFetch } from "../lib/api";
 
 const PaymentFailedPage = () => {
   const [searchParams] = useSearchParams();
   const [errorDetails, setErrorDetails] = useState({
     message: "Payment was unsuccessful",
+    orderId: null,
     reference: null,
     errorCode: null,
+    status: null,
   });
+  const [syncMessage, setSyncMessage] = useState("");
 
   useEffect(() => {
-    // Extract error details from URL parameters
-    const message = searchParams.get("message") || "Payment was unsuccessful";
-    const reference = searchParams.get("reference");
-    const errorCode = searchParams.get("error_code");
+    const syncFailedPayment = async () => {
+      const message = searchParams.get("message") || "Payment was unsuccessful";
+      const reference = searchParams.get("reference") || searchParams.get("transaction_id") || searchParams.get("m_tx_id");
+      const errorCode = searchParams.get("error_code");
+      const status = searchParams.get("status") || searchParams.get("payment_status") || "FAILED";
+      const orderId = searchParams.get("orderId") || searchParams.get("m_tx_id") || localStorage.getItem("lastOrderId");
 
-    setErrorDetails({
-      message,
-      reference,
-      errorCode,
-    });
+      setErrorDetails({
+        message,
+        orderId,
+        reference,
+        errorCode,
+        status,
+      });
+
+      if (!orderId) return;
+
+      try {
+        const response = await apiFetch("/api/payment/confirm-failure", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            paymentStatus: status,
+            transactionId: reference,
+            rawParams: Object.fromEntries(searchParams.entries()),
+          }),
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || "Failed to sync failed payment status");
+        }
+
+        setSyncMessage("Your order has been updated to failed payment in My Orders.");
+      } catch (error) {
+        console.error("Failed to sync failed payment:", error);
+        setSyncMessage("We could not automatically update your order status, but you can retry payment from checkout.");
+      }
+    };
+
+    syncFailedPayment();
   }, [searchParams]);
 
   const handleRetryPayment = () => {
@@ -71,11 +107,21 @@ const PaymentFailedPage = () => {
                   <span className="font-medium">Reference:</span> {errorDetails.reference}
                 </p>
               )}
+
+              {errorDetails.orderId && (
+                <p className="text-sm text-red-600">
+                  <span className="font-medium">Order ID:</span> {errorDetails.orderId}
+                </p>
+              )}
               
               {errorDetails.errorCode && (
                 <p className="text-sm text-red-600">
                   <span className="font-medium">Error Code:</span> {errorDetails.errorCode}
                 </p>
+              )}
+
+              {syncMessage && (
+                <p className="text-sm text-red-700 mt-3">{syncMessage}</p>
               )}
             </div>
 

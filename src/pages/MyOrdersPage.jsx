@@ -13,9 +13,11 @@ const statusStyles = (status) => {
     paid: "bg-green-100 text-green-700",
     processing: "bg-blue-100 text-blue-700",
     pending: "bg-yellow-100 text-yellow-700",
+    "pending-payment": "bg-yellow-100 text-yellow-700",
     cancelled: "bg-red-100 text-red-700",
     canceled: "bg-red-100 text-red-700",
     new: "bg-gray-100 text-gray-700",
+    failed: "bg-red-100 text-red-700",
   };
   return map[s] || "bg-gray-100 text-gray-700";
 };
@@ -101,8 +103,8 @@ const MyOrdersPage = () => {
         // Normalize to array
         const allOrders = Array.isArray(data.orders) ? data.orders : [];
 
-        // Keep only this user's successfully paid orders
-        const mine = allOrders.filter((o) => isMe(o, currentUser) && isPaidOrder(o));
+        // Keep this user's orders, including pending ones, so payment updates are visible
+        const mine = allOrders.filter((o) => isMe(o, currentUser));
 
         // Newest first
         mine.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));

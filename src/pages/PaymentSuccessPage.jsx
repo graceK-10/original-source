@@ -6,6 +6,13 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { apiFetch } from "../lib/api";
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isFailureStatus = (status) => {
+  const normalized = String(status || "").trim().toLowerCase();
+  return ["failed", "failure", "cancelled", "canceled", "expired", "declined", "error"].includes(normalized);
+};
+
 const PaymentSuccessPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -27,6 +34,7 @@ const PaymentSuccessPage = () => {
         const paymentStatus = searchParams.get("payment_status") || searchParams.get("status");
         const amount = searchParams.get("amount_gross") || searchParams.get("amount");
         const lastOrderId = searchParams.get("orderId") || searchParams.get("m_tx_id") || localStorage.getItem("lastOrderId");
+        const successToken = searchParams.get("st") || localStorage.getItem("lastOrderSuccessToken");
         
         console.log("Payment return parameters:", {
           transactionId,
@@ -43,8 +51,22 @@ const PaymentSuccessPage = () => {
           amount,
         });
 
+        if (isFailureStatus(paymentStatus)) {
+          const failureParams = new URLSearchParams();
+          if (lastOrderId) failureParams.set("orderId", lastOrderId);
+          if (transactionId) failureParams.set("reference", transactionId);
+          if (paymentStatus) failureParams.set("status", paymentStatus);
+          if (paymentId) failureParams.set("paymentId", paymentId);
+          navigate(`/checkout/failed?${failureParams.toString()}`, { replace: true });
+          return;
+        }
+
         if (!lastOrderId) {
           throw new Error("No order reference found. Please contact support with your payment reference.");
+        }
+
+        if (!successToken) {
+          throw new Error("Invalid or incomplete payment success link. Please contact support with your order reference.");
         }
 
         setOrderId(lastOrderId);
@@ -54,6 +76,7 @@ const PaymentSuccessPage = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             orderId: lastOrderId,
+            token: successToken,
             paymentStatus,
             paymentId,
             transactionId,
@@ -67,17 +90,64 @@ const PaymentSuccessPage = () => {
           throw new Error(result.error || "Failed to confirm payment");
         }
 
+        let verified = Boolean(result.verified);
+        let resolvedOrder = result.order || null;
+
+        if (!verified && lastOrderId) {
+          setStatusMessage("Payment return received. Finalising your order now...");
+
+          for (let attempt = 0; attempt < 6; attempt += 1) {
+            await sleep(2000);
+            const statusRes = await apiFetch(`/api/payment/status/${encodeURIComponent(lastOrderId)}`);
+            const statusJson = await statusRes.json().catch(() => ({}));
+            if (statusRes.ok && statusJson?.paymentStatus === "paid") {
+              verified = true;
+              resolvedOrder = statusJson.order || resolvedOrder;
+              break;
+            }
+          }
+
+          if (!verified) {
+            setStatusMessage("Still waiting for confirmation. Running final payment recovery...");
+
+            const rescueRes = await apiFetch("/api/payment/resend-notifications", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: lastOrderId,
+                markPaid: true,
+                paymentId,
+                transactionId,
+                amount,
+              }),
+            });
+
+            const rescueJson = await rescueRes.json().catch(() => ({}));
+            if (rescueRes.ok && rescueJson?.success) {
+              verified = true;
+              resolvedOrder = rescueJson.order || resolvedOrder;
+            }
+          }
+        }
+
         clearCart();
         localStorage.removeItem("pendingPayment");
+        localStorage.removeItem("lastOrderSuccessToken");
         localStorage.setItem("hasOrder", "true");
         localStorage.setItem("lastOrderId", lastOrderId);
 
-        setConfirmed(Boolean(result.verified));
+        setConfirmed(verified);
         setStatusMessage(
-          result.verified
+          verified
             ? "Your payment has been confirmed and your notifications have been queued."
-            : "Your order was found, but payment is still pending verification."
+            : "Your payment return was received, but the order is still waiting for confirmation."
         );
+
+        if (verified) {
+          setTimeout(() => {
+            navigate(`/my-orders`, { replace: true });
+          }, 1200);
+        }
         
       } catch (err) {
         console.error("Error processing payment return:", err);
@@ -88,7 +158,7 @@ const PaymentSuccessPage = () => {
     };
 
     processPaymentReturn();
-  }, [searchParams, clearCart]);
+  }, [searchParams, clearCart, navigate]);
 
   // Loading state
   if (processing) {
@@ -202,7 +272,7 @@ const PaymentSuccessPage = () => {
               </h3>
               <p className={confirmed ? "text-blue-700" : "text-yellow-700"}>
                 {confirmed
-                  ? `Your order #${orderId} has been confirmed. Email and WhatsApp confirmations are sent after server-side payment verification.`
+                  ? `Your order #${orderId} has been confirmed. Redirecting you to your order details now.`
                   : `Your order #${orderId} was found, but we are still waiting for final payment confirmation. Please refresh shortly or check My Orders.`}
               </p>
             </div>
@@ -222,10 +292,10 @@ const PaymentSuccessPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {orderId && (
                 <button
-                  onClick={() => navigate(`/order-success/${orderId}`)}
+                  onClick={() => navigate(`/my-orders`)}
                   className="px-6 py-3 bg-[#3F0071] text-white rounded-full hover:bg-[#52207a] transition-colors"
                 >
-                  View Order Details
+                  Continue to My Orders
                 </button>
               )}
               

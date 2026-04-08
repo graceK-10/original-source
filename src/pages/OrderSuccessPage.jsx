@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { jsPDF } from "jspdf";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../CartContext";
 import Navbar from "../components/Navbar";
@@ -15,6 +16,110 @@ const OrderSuccessPage = () => {
   const [error, setError] = useState("");
   const paymentStatus = String(order?.payment?.status || "pending").toLowerCase();
   const isPaid = paymentStatus === "paid" || paymentStatus === "completed";
+
+  const handleDownloadPdf = () => {
+    if (!order) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    const ensureSpace = (requiredHeight = 10) => {
+      if (y + requiredHeight > pageHeight - 20) {
+        doc.addPage();
+        y = 20;
+      }
+    };
+
+    const addSectionTitle = (title) => {
+      ensureSpace(12);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text(title, margin, y);
+      y += 8;
+    };
+
+    const addBodyText = (text, indent = 0) => {
+      const safeText = String(text ?? "");
+      const lines = doc.splitTextToSize(safeText, contentWidth - indent);
+      ensureSpace(lines.length * 6 + 2);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text(lines, margin + indent, y);
+      y += lines.length * 6 + 2;
+    };
+
+    const addLabelValue = (label, value) => {
+      addBodyText(`${label}: ${value ?? "N/A"}`);
+    };
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("Order Confirmation", margin, y);
+    y += 10;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+    y += 10;
+
+    addSectionTitle("Order Confirmed");
+    addLabelValue("Order Number", orderId);
+    addLabelValue(
+      "Customer Email",
+      order?.customer?.email || currentUser?.email || "your email address"
+    );
+    addLabelValue("Payment Status", order?.payment?.status || "Pending");
+    addBodyText(
+      isPaid
+        ? "Your payment has been confirmed. A confirmation email has been sent."
+        : "Your order was received and your payment is still being confirmed. Confirmation email and WhatsApp updates are only sent after InstaPay marks the payment as completed."
+    );
+
+    addSectionTitle("Order Summary");
+    (order.items || []).forEach((item, index) => {
+      addBodyText(
+        `${index + 1}. ${item.productName} (${item.variantName}) - ${item.qty} x ${formatPrice(
+          item.price
+        )} = ${formatPrice(item.itemTotal)}`
+      );
+    });
+
+    addSectionTitle("Totals");
+    addLabelValue("Subtotal", formatPrice(order?.totals?.subtotal || 0));
+    addLabelValue("Shipping", formatPrice(order?.totals?.shipping || 0));
+    addLabelValue("Total", formatPrice(order?.totals?.grandTotal || 0));
+
+    addSectionTitle("Shipping Information");
+    addLabelValue("Address", order?.shipping?.address1 || "N/A");
+    addLabelValue("Suburb", order?.shipping?.suburb || "N/A");
+    addLabelValue("City", order?.shipping?.city || "N/A");
+    addLabelValue("Postal Code", order?.shipping?.postalCode || "N/A");
+
+    addSectionTitle("Payment Information");
+    addLabelValue("Method", order?.payment?.method || "N/A");
+    addLabelValue("Status", order?.payment?.status || "Pending");
+
+    if (order?.payment?.method === "EFT") {
+      addBodyText("EFT Payment Instructions:");
+      addBodyText("Please make payment to the following account:", 4);
+      addBodyText("Bank: Standard Bank", 4);
+      addBodyText("Account Name: Original Source", 4);
+      addBodyText("Account Number: 270026775", 4);
+      addBodyText("Branch Code: 051001", 4);
+      addBodyText(`Reference: OS-${orderId}`, 4);
+      addBodyText("Please include your order reference in the payment description.", 4);
+    }
+
+    addSectionTitle("What's Next?");
+    addBodyText("We'll process your order and be in touch shortly with shipping details.");
+    addBodyText("If you have any questions, please contact our support team at info@originalsource.co.za.");
+
+    doc.save(`order-${orderId}.pdf`);
+  };
 
   // Fetch order details
   useEffect(() => {
@@ -287,8 +392,15 @@ const OrderSuccessPage = () => {
                   </p>
                 </div>
 
-                {/* Continue Shopping Button */}
-                <div className="mt-8 text-center">
+                {/* Action Buttons */}
+                <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    type="button"
+                    onClick={handleDownloadPdf}
+                    className="inline-block px-6 py-3 border border-[#028282] text-[#028282] rounded-full hover:bg-[#028282]/10 transition-colors"
+                  >
+                    Download PDF
+                  </button>
                   <Link
                     to="/products"
                     className="inline-block px-6 py-3 bg-[#028282] text-white rounded-full hover:bg-[#08B2B2] transition-colors"

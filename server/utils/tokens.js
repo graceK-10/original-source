@@ -44,6 +44,13 @@ export function hashToken(token) {
 }
 
 /**
+ * Generate a cryptographically secure random token for one-time flows
+ */
+export function generateSecureToken(byteLength = 32) {
+  return crypto.randomBytes(byteLength).toString("hex");
+}
+
+/**
  * Decode a JWT token without verifying it
  * Useful for extracting payload info without throwing on expired tokens
  */
@@ -88,11 +95,14 @@ const SAME_SITE_STRATEGY = process.env.COOKIE_SAMESITE ||
 
 export const refreshCookieOptions = {
   httpOnly: true,
-  secure: isHTTPS,                   // true on HTTPS (required for sameSite:'none')
-  sameSite: SAME_SITE_STRATEGY,      // 'none' for subdomains, 'lax' for same-origin
+  // secure: isHTTPS,                   // true on HTTPS (required for sameSite:'none')
+  // sameSite: SAME_SITE_STRATEGY,      // 'none' for subdomains, 'lax' for same-origin
+  sameSite: "none",
+secure: true,
   path: "/",                         // root path to make cookie accessible from all paths including /test
   maxAge: 1000 * 60 * 60 * 24 * 7,   // 7 days
-  domain,                            // shared across subdomains in prod
+  // domain,                            // shared across subdomains in prod
+  domain: undefined
 };
 
 // When sameSite is 'none', secure MUST be true, so enforce it
